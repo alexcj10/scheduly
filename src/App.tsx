@@ -37,6 +37,9 @@ const App: React.FC = () => {
               <Route path="/create" element={<CreatePost />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/media" element={<import('@/pages/MediaLibrary').then(m => m.default) />} />
+              <Route path="/account" element={<import('@/pages/Account').then(m => m.default) />} />
+              <Route path="/settings" element={<import('@/pages/Settings').then(m => m.default) />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -46,5 +49,4 @@ const App: React.FC = () => {
     </React.StrictMode>
   );
 };
-
 export default App;
