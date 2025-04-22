@@ -5,21 +5,89 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>, type: 'login' | 'register') => {
+  const validateEmail = (email: string) => {
+    return email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, type: 'login' | 'register') => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      toast({
+        title: "Invalid password",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (type === 'register' && !name) {
+      toast({
+        title: "Name required",
+        description: "Please enter your full name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
-    // In a real app, this would call an API to authenticate
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      // In a real app, this would call an API to authenticate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Mock successful login
       localStorage.setItem("scheduly-authenticated", "true");
-      window.location.href = "/dashboard";
-    }, 1000);
+      localStorage.setItem("scheduly-user", JSON.stringify({
+        name: type === 'register' ? name : "Test User",
+        email: email,
+        id: "user-" + Math.random().toString(36).substring(2, 9),
+        createdAt: new Date().toISOString()
+      }));
+      
+      toast({
+        title: type === 'login' ? "Logged in!" : "Account created!",
+        description: type === 'login' 
+          ? "Welcome back to Scheduly." 
+          : "Your account has been created successfully.",
+      });
+      
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Authentication error:", error);
+      toast({
+        title: "Authentication failed",
+        description: "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,7 +109,15 @@ export function AuthForm() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="hello@example.com" required />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="hello@example.com" 
+                  required 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -50,12 +126,19 @@ export function AuthForm() {
                     Forgot password?
                   </Button>
                 </div>
-                <Input id="password" type="password" required />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
             </CardContent>
             <CardFooter>
               <Button className="w-full" type="submit" disabled={isLoading}>
-                {isLoading ? "Loading..." : "Login"}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </CardFooter>
           </form>
@@ -66,15 +149,37 @@ export function AuthForm() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input id="name" type="text" required />
+                <Input 
+                  id="name" 
+                  type="text" 
+                  required 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-email">Email</Label>
-                <Input id="register-email" type="email" placeholder="hello@example.com" required />
+                <Input 
+                  id="register-email" 
+                  type="email" 
+                  placeholder="hello@example.com" 
+                  required 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="register-password">Password</Label>
-                <Input id="register-password" type="password" required />
+                <Input 
+                  id="register-password" 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
             </CardContent>
             <CardFooter>
