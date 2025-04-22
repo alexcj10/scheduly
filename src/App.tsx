@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import Calendar from "./pages/Calendar";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -21,24 +23,28 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="bottom-right" />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/create" element={<CreatePost />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/analytics" element={<Analytics />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App: React.FC = () => {
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="bottom-right" />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/create" element={<CreatePost />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/analytics" element={<Analytics />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;
