@@ -11,6 +11,9 @@ import CreatePost from "./pages/CreatePost";
 import Calendar from "./pages/Calendar";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
+import MediaLibrary from "./pages/MediaLibrary";
+import Account from "./pages/Account";
+import Settings from "./pages/Settings";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -25,28 +28,27 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner position="bottom-right" />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/create" element={<CreatePost />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/media" element={<import('@/pages/MediaLibrary').then(m => m.default) />} />
-              <Route path="/account" element={<import('@/pages/Account').then(m => m.default) />} />
-              <Route path="/settings" element={<import('@/pages/Settings').then(m => m.default) />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner position="bottom-right" />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/create" element={<CreatePost />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/media" element={<MediaLibrary />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/settings" element={<Settings />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
+
 export default App;
