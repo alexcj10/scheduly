@@ -8,12 +8,23 @@ import { HashtagSuggestions } from "@/components/post/HashtagSuggestions";
 import { BestPostTimes } from "@/components/post/BestPostTimes";
 import { ContentRecycling } from "@/components/post/ContentRecycling";
 
+interface PostValues {
+  platform?: string;
+  title?: string;
+  caption?: string;
+  imageUrl?: string;
+  postDate?: string;
+  postTime?: string;
+  [key: string]: any;
+}
+
 export default function CreatePost() {
   const [isLoading, setIsLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [defaultValues, setDefaultValues] = useState({});
+  const [defaultValues, setDefaultValues] = useState<PostValues>({});
   const location = useLocation();
+  const navigate = useNavigate();
   const { error } = useFeedbackToast();
 
   useEffect(() => {
