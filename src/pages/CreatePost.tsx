@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
-import { Calendar, Clock, Image, Save, Trash } from "lucide-react";
+import { Calendar, Clock, Image, Save, Trash, Sparkles, RefreshCcw, ThumbsUp, MessageSquare, Lightbulb } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useFeedbackToast } from "@/lib/useFeedbackToast";
 import { format } from "date-fns";
+import { generateContentSuggestions, generateHashtags, PlatformType } from "@/lib/aiContentService";
+import { savePostForRecycling } from "@/lib/localProfile";
 
 // Types
 interface Post {
@@ -27,7 +29,7 @@ interface Post {
 export default function CreatePost() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
+  const { toast, ai } = useFeedbackToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -42,6 +44,8 @@ export default function CreatePost() {
     "#marketing", "#socialmedia", "#contentcreator", "#digitalmarketing", 
     "#instagrammarketing", "#socialmediamarketing", "#branding"
   ]);
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
+  const [recycledPosts, setRecycledPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     // Check if we're in edit mode
@@ -70,13 +74,14 @@ export default function CreatePost() {
           const scheduledDate = new Date(postToEdit.scheduledFor);
           setPostDate(format(scheduledDate, "yyyy-MM-dd"));
           setPostTime(format(scheduledDate, "HH:mm"));
+          
+          // Generate platform-specific hashtags
+          if (postToEdit.platform) {
+            generateMoreHashtags(postToEdit.title);
+          }
         } else {
           // Post not found
-          toast({
-            title: "Post not found",
-            description: "The post you're trying to edit couldn't be found.",
-            variant: "destructive",
-          });
+          toast.error("Post not found", "The post you're trying to edit couldn't be found.");
           navigate("/dashboard");
         }
       }
@@ -86,6 +91,12 @@ export default function CreatePost() {
       const today = new Date();
       setPostDate(format(today, "yyyy-MM-dd"));
       setPostTime("12:00");
+    }
+    
+    // Load recycled posts
+    const recycledData = localStorage.getItem("scheduly-recycled-posts");
+    if (recycledData) {
+      setRecycledPosts(JSON.parse(recycledData).slice(0, 3));
     }
   }, [location, navigate, toast]);
 
@@ -102,38 +113,22 @@ export default function CreatePost() {
 
   const validateForm = () => {
     if (!title.trim()) {
-      toast({
-        title: "Title required",
-        description: "Please enter a title for your post.",
-        variant: "destructive",
-      });
+      toast.error("Title required", "Please enter a title for your post.");
       return false;
     }
 
     if (!platform) {
-      toast({
-        title: "Platform required",
-        description: "Please select at least one platform for your post.",
-        variant: "destructive",
-      });
+      toast.error("Platform required", "Please select at least one platform for your post.");
       return false;
     }
 
     if (!postDate || !postTime) {
-      toast({
-        title: "Schedule required",
-        description: "Please select when you want to publish your post.",
-        variant: "destructive",
-      });
+      toast.error("Schedule required", "Please select when you want to publish your post.");
       return false;
     }
 
     if (!uploadedImage) {
-      toast({
-        title: "Image required",
-        description: "Please upload an image for your post.",
-        variant: "destructive",
-      });
+      toast.error("Image required", "Please upload an image for your post.");
       return false;
     }
 
@@ -173,10 +168,7 @@ export default function CreatePost() {
         
         localStorage.setItem("scheduly-posts", JSON.stringify(updatedPosts));
         
-        toast({
-          title: "Post updated",
-          description: "Your post has been updated successfully.",
-        });
+        toast.success("Post updated", "Your post has been updated successfully.");
       } else {
         // Create new post
         const newPost: Post = {
@@ -192,10 +184,7 @@ export default function CreatePost() {
         const updatedPosts = [...existingPosts, newPost];
         localStorage.setItem("scheduly-posts", JSON.stringify(updatedPosts));
         
-        toast({
-          title: "Post scheduled",
-          description: `Your post will be published on ${format(scheduledDate, "PPP 'at' p")}.`,
-        });
+        toast.success("Post scheduled", `Your post will be published on ${format(scheduledDate, "PPP 'at' p")}.`);
       }
       
       // Navigate back to dashboard after a short delay
@@ -204,43 +193,97 @@ export default function CreatePost() {
       }, 1000);
     } catch (error) {
       console.error("Error saving post:", error);
-      toast({
-        title: "Error",
-        description: "There was a problem saving your post. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Error", "There was a problem saving your post. Please try again.");
       setIsSubmitting(false);
     }
   };
 
-  const generateMoreHashtags = () => {
-    // In a real app, this would call an AI service
-    const allHashtags = [
-      "#marketing", "#socialmedia", "#contentcreator", "#digitalmarketing", 
-      "#instagrammarketing", "#socialmediamarketing", "#branding", "#business",
-      "#entrepreneur", "#onlinemarketing", "#marketingdigital", "#marketingstrategy",
-      "#smallbusiness", "#contentmarketing", "#content", "#smm", "#viral", "#trending",
-      "#seo", "#instagram", "#facebook", "#twitter", "#linkedin", "#tiktok"
-    ];
+  const generateAICaption = () => {
+    if (!platform) {
+      toast.error("Platform required", "Please select a platform to generate a caption.");
+      return;
+    }
     
-    // Randomly select 7 hashtags
-    const newHashtags = [...allHashtags]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 7);
+    setIsGeneratingCaption(true);
     
-    setSuggestedHashtags(newHashtags);
+    try {
+      // In real app, this would call an AI service via API
+      setTimeout(() => {
+        const suggestions = generateContentSuggestions(platform as PlatformType, title);
+        setCaption(suggestions.caption);
+        setSuggestedHashtags(suggestions.hashtags);
+        
+        ai("AI Generated Caption", "A caption has been created based on your platform and topic.");
+        setIsGeneratingCaption(false);
+      }, 800);
+    } catch (error) {
+      console.error("Error generating caption:", error);
+      toast.error("Error", "Failed to generate caption. Please try again.");
+      setIsGeneratingCaption(false);
+    }
+  };
+
+  const generateMoreHashtags = (topic: string = title) => {
+    if (!platform) {
+      toast.error("Platform required", "Please select a platform to generate hashtags.");
+      return;
+    }
     
-    toast({
-      title: "Hashtags generated",
-      description: "New hashtag suggestions are ready for your post.",
-    });
+    if (!topic) {
+      toast.error("Topic required", "Please enter a post title or topic for hashtag generation.");
+      return;
+    }
+    
+    // Generate hashtags based on platform and topic
+    try {
+      const newHashtags = generateHashtags(platform as PlatformType, topic);
+      setSuggestedHashtags(newHashtags);
+      
+      ai("AI Hashtags Generated", "New hashtag suggestions are ready for your post.");
+    } catch (error) {
+      console.error("Error generating hashtags:", error);
+      toast.error("Error", "Failed to generate hashtags. Please try again.");
+    }
   };
   
   const addHashtagToCaption = (hashtag: string) => {
     setCaption(prev => prev + " " + hashtag);
-    toast({
-      description: `Added ${hashtag} to your caption.`,
-    });
+    toast.info("Hashtag Added", `Added ${hashtag} to your caption.`);
+  };
+  
+  const useRecycledPost = (post: Post) => {
+    setTitle(post.title);
+    setCaption(post.caption || "");
+    setPlatform(post.platform);
+    setUploadedImage(post.imageUrl);
+    
+    // Generate new hashtags based on the recycled post
+    if (post.platform) {
+      generateMoreHashtags(post.title);
+    }
+    
+    ai("Content Recycled", "The post has been loaded for recycling. Update as needed before scheduling.");
+  };
+  
+  const saveForRecycling = () => {
+    if (!title || !platform) {
+      toast.error("Incomplete post", "Please add a title and select a platform before saving for recycling.");
+      return;
+    }
+    
+    try {
+      savePostForRecycling({
+        title,
+        platform,
+        caption,
+        imageUrl: uploadedImage
+      });
+      
+      toast.success("Saved for recycling", "This content has been saved and can be reused later.");
+    } catch (error) {
+      console.error("Error saving for recycling:", error);
+      toast.error("Error", "Failed to save content for recycling.");
+    }
   };
 
   if (isLoading) {
@@ -376,16 +419,22 @@ export default function CreatePost() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-auto py-0 px-2 text-xs"
+                      className="h-auto py-0 px-2 text-xs flex items-center gap-1"
                       type="button"
-                      onClick={() => {
-                        toast({
-                          title: "AI Caption Suggestion",
-                          description: "This feature will be available soon.",
-                        });
-                      }}
+                      onClick={generateAICaption}
+                      disabled={isGeneratingCaption || !platform}
                     >
-                      AI Caption Suggestion
+                      {isGeneratingCaption ? (
+                        <>
+                          <div className="h-3 w-3 rounded-full border-2 border-t-transparent border-primary animate-spin mr-1"></div>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-1" /> 
+                          AI Caption Suggestion
+                        </>
+                      )}
                     </Button>
                   </div>
                   <Textarea 
@@ -402,7 +451,13 @@ export default function CreatePost() {
                   <Label htmlFor="platforms">Platforms</Label>
                   <Select 
                     value={platform} 
-                    onValueChange={setPlatform}
+                    onValueChange={(value) => {
+                      setPlatform(value);
+                      // Generate platform-specific hashtags when platform changes
+                      if (title) {
+                        generateMoreHashtags(title);
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select platforms" />
@@ -442,11 +497,22 @@ export default function CreatePost() {
                 </div>
               </CardContent>
               
-              <CardFooter className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
+              <CardFooter className="flex flex-wrap justify-between gap-3">
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => navigate("/dashboard")}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="secondary"
+                    onClick={saveForRecycling}
+                    className="flex items-center"
+                  >
+                    <RefreshCcw className="h-4 w-4 mr-2" />
+                    Save for Recycling
+                  </Button>
+                </div>
+                <Button type="submit" disabled={isSubmitting} className="min-w-[160px]">
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting ? 
                     (editMode ? "Saving..." : "Scheduling...") : 
@@ -458,6 +524,45 @@ export default function CreatePost() {
         </div>
         
         <div>
+          {/* Content Recycling */}
+          {recycledPosts.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-lg">Recycle Content</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recycledPosts.map((post, index) => (
+                    <div 
+                      key={index} 
+                      className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => useRecycledPost(post)}
+                    >
+                      <div className="flex gap-3 items-start">
+                        {post.imageUrl && (
+                          <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+                            <img 
+                              src={post.imageUrl} 
+                              alt={post.title} 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-medium text-sm">{post.title}</h4>
+                          <p className="text-xs text-gray-500">{post.platform}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  Click on a post to reuse its content
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        
           {/* Hashtag Suggestions */}
           <Card className="mb-6">
             <CardHeader>
@@ -479,8 +584,10 @@ export default function CreatePost() {
                 variant="outline" 
                 className="w-full mt-4" 
                 size="sm"
-                onClick={generateMoreHashtags}
+                onClick={() => generateMoreHashtags()}
+                disabled={!title || !platform}
               >
+                <RefreshCcw className="h-4 w-4 mr-2" />
                 Generate More Hashtags
               </Button>
             </CardContent>
