@@ -3,6 +3,7 @@
 export type PlatformType = "Instagram" | "Facebook" | "Twitter" | "LinkedIn" | "Pinterest";
 
 export type ContentRecommendation = {
+  platform: PlatformType; // Add platform property
   caption: string;
   hashtags: string[];
   bestTimeToPost: string;
@@ -29,6 +30,7 @@ export function generateContentSuggestions(platform: PlatformType, topic?: strin
   // Platform-specific content suggestions
   const platformSpecificContent: Record<PlatformType, ContentRecommendation> = {
     Instagram: {
+      platform: "Instagram", // Add platform property
       caption: topic 
         ? `Bringing you the latest in ${topic}! What's your favorite part? Share below 👇 #${topic.replace(/\s+/g, '')}Love` 
         : "Excited to share this with you all! What do you think? Let me know in the comments 👇",
@@ -37,6 +39,7 @@ export function generateContentSuggestions(platform: PlatformType, topic?: strin
       suggestedTopics: ["Behind the scenes", "Day in the life", "Product spotlight", "Customer story"]
     },
     Facebook: {
+      platform: "Facebook", // Add platform property
       caption: topic 
         ? `We've been working on something exciting related to ${topic}. We can't wait to hear your thoughts!` 
         : "We're thrilled to announce our latest update! What features are you most excited about?",
@@ -45,6 +48,7 @@ export function generateContentSuggestions(platform: PlatformType, topic?: strin
       suggestedTopics: ["Industry news", "Community highlights", "Longer form stories", "Live events"]
     },
     Twitter: {
+      platform: "Twitter", // Add platform property
       caption: topic 
         ? `New ${topic} alert! 🚨 Check out what we've been working on. Thoughts?` 
         : "Just launched something new! What do you think? RT if you're as excited as we are!",
@@ -53,6 +57,7 @@ export function generateContentSuggestions(platform: PlatformType, topic?: strin
       suggestedTopics: ["Hot takes", "Industry trends", "Quick updates", "Polls and questions"]
     },
     LinkedIn: {
+      platform: "LinkedIn", // Add platform property
       caption: topic 
         ? `We're excited to share our latest insights on ${topic}. How is your organization approaching this?` 
         : "Proud to announce our latest professional milestone. What growth opportunities are you pursuing this quarter?",
@@ -61,6 +66,7 @@ export function generateContentSuggestions(platform: PlatformType, topic?: strin
       suggestedTopics: ["Industry insights", "Professional development", "Company culture", "Thought leadership"]
     },
     Pinterest: {
+      platform: "Pinterest", // Add platform property
       caption: topic 
         ? `Get inspired with our ${topic} ideas! Save this pin for later 📌` 
         : "New ideas to inspire your next project! Save this for later 📌",

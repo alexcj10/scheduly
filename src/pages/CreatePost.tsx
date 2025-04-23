@@ -29,7 +29,7 @@ interface Post {
 export default function CreatePost() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast, ai } = useFeedbackToast();
+  const { success, error, info, ai } = useFeedbackToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -113,22 +113,22 @@ export default function CreatePost() {
 
   const validateForm = () => {
     if (!title.trim()) {
-      toast.error("Title required", "Please enter a title for your post.");
+      error("Title required", "Please enter a title for your post.");
       return false;
     }
 
     if (!platform) {
-      toast.error("Platform required", "Please select at least one platform for your post.");
+      error("Platform required", "Please select at least one platform for your post.");
       return false;
     }
 
     if (!postDate || !postTime) {
-      toast.error("Schedule required", "Please select when you want to publish your post.");
+      error("Schedule required", "Please select when you want to publish your post.");
       return false;
     }
 
     if (!uploadedImage) {
-      toast.error("Image required", "Please upload an image for your post.");
+      error("Image required", "Please upload an image for your post.");
       return false;
     }
 
@@ -193,7 +193,7 @@ export default function CreatePost() {
       }, 1000);
     } catch (error) {
       console.error("Error saving post:", error);
-      toast.error("Error", "There was a problem saving your post. Please try again.");
+      error("Error", "There was a problem saving your post. Please try again.");
       setIsSubmitting(false);
     }
   };

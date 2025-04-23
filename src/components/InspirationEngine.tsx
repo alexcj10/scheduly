@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,7 @@ export function InspirationEngine() {
   const [recommendations, setRecommendations] = useState<ContentRecommendation[]>([]);
   const [searchTopic, setSearchTopic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast, ai } = useFeedbackToast();
+  const { success, error, info, ai } = useFeedbackToast();
 
   // Load trending topics and saved ideas on mount
   useEffect(() => {
@@ -29,7 +28,7 @@ export function InspirationEngine() {
 
   const handleTopicSearch = () => {
     if (!searchTopic.trim()) {
-      toast.error("Please enter a topic", "Enter a topic to generate content ideas");
+      error("Please enter a topic", "Enter a topic to generate content ideas");
       return;
     }
 
@@ -41,17 +40,14 @@ export function InspirationEngine() {
         const platforms: PlatformType[] = ["Instagram", "Facebook", "Twitter", "LinkedIn"];
         
         const newRecommendations = platforms.map(platform => {
-          return {
-            platform,
-            ...generateContentSuggestions(platform, searchTopic)
-          };
+          return generateContentSuggestions(platform, searchTopic);
         });
         
         setRecommendations(newRecommendations);
         ai("Content Ideas Generated", `${newRecommendations.length} ideas created for "${searchTopic}"`);
       } catch (error) {
         console.error("Error generating recommendations:", error);
-        toast.error("Failed to generate ideas", "Please try again later");
+        error("Failed to generate ideas", "Please try again later");
       } finally {
         setIsLoading(false);
       }
@@ -71,10 +67,10 @@ export function InspirationEngine() {
       // Refresh saved ideas
       setSavedIdeas(getContentIdeas().filter(idea => idea.saved));
       
-      toast.success("Idea saved", "The content idea has been saved to your library");
+      success("Idea saved", "The content idea has been saved to your library");
     } catch (error) {
       console.error("Error saving idea:", error);
-      toast.error("Error saving idea", "Please try again");
+      error("Error saving idea", "Please try again");
     }
   };
 
@@ -85,19 +81,19 @@ export function InspirationEngine() {
       // Refresh saved ideas
       setSavedIdeas(getContentIdeas().filter(idea => idea.saved));
       
-      toast.info(
+      info(
         currentSaved ? "Idea removed from saved" : "Idea saved", 
         currentSaved ? "The idea has been removed from your saved ideas" : "The idea has been saved"
       );
     } catch (error) {
       console.error("Error updating idea:", error);
-      toast.error("Error updating idea", "Please try again");
+      error("Error updating idea", "Please try again");
     }
   };
 
   const refreshTrendingTopics = () => {
     setTrendingTopics(getTrendingTopics());
-    toast.info("Topics refreshed", "Trending topics have been updated");
+    info("Topics refreshed", "Trending topics have been updated");
   };
 
   return (

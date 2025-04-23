@@ -1,9 +1,10 @@
 
-import { useToast } from "@/hooks/use-toast";
+import { useToast, toast as rawToast } from "@/hooks/use-toast";
 
 export function useFeedbackToast() {
   const { toast } = useToast();
   return {
+    toast, // Add the raw toast function
     success: (title: string, description?: string) =>
       toast({
         title,
