@@ -50,15 +50,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex">
         <Sidebar />
-        <main className="pl-0 md:pl-64 pt-6 pb-16 px-4 md:pr-6 w-full">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 pl-0 lg:pl-64 transition-all duration-300">
+          <div className="p-6 max-w-7xl mx-auto">
             <Skeleton className="h-10 w-48 mb-8" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Skeleton className="h-32 rounded-lg" />
               <Skeleton className="h-32 rounded-lg" />
             </div>
-            <Skeleton className="h-8 w-40 mb-4" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Skeleton className="h-8 w-40 mt-8 mb-4" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Skeleton className="h-64 rounded-lg" />
               <Skeleton className="h-64 rounded-lg" />
               <Skeleton className="h-64 rounded-lg" />
@@ -70,10 +70,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-gray-50 flex">
       <Sidebar />
-      <main className="pl-0 md:pl-64 pt-6 pb-16 px-4 md:pr-6 w-full">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 pl-0 lg:pl-64 transition-all duration-300">
+        <div className="p-6 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
