@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ interface Post {
 export default function CreatePost() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { success, error, info, ai } = useFeedbackToast();
+  const { success, error, info, ai, toast } = useFeedbackToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -81,7 +80,7 @@ export default function CreatePost() {
           }
         } else {
           // Post not found
-          toast.error("Post not found", "The post you're trying to edit couldn't be found.");
+          error("Post not found", "The post you're trying to edit couldn't be found.");
           navigate("/dashboard");
         }
       }
@@ -98,7 +97,7 @@ export default function CreatePost() {
     if (recycledData) {
       setRecycledPosts(JSON.parse(recycledData).slice(0, 3));
     }
-  }, [location, navigate, toast]);
+  }, [location, navigate, error]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -168,7 +167,7 @@ export default function CreatePost() {
         
         localStorage.setItem("scheduly-posts", JSON.stringify(updatedPosts));
         
-        toast.success("Post updated", "Your post has been updated successfully.");
+        success("Post updated", "Your post has been updated successfully.");
       } else {
         // Create new post
         const newPost: Post = {
@@ -184,7 +183,7 @@ export default function CreatePost() {
         const updatedPosts = [...existingPosts, newPost];
         localStorage.setItem("scheduly-posts", JSON.stringify(updatedPosts));
         
-        toast.success("Post scheduled", `Your post will be published on ${format(scheduledDate, "PPP 'at' p")}.`);
+        success("Post scheduled", `Your post will be published on ${format(scheduledDate, "PPP 'at' p")}.`);
       }
       
       // Navigate back to dashboard after a short delay
@@ -200,7 +199,7 @@ export default function CreatePost() {
 
   const generateAICaption = () => {
     if (!platform) {
-      toast.error("Platform required", "Please select a platform to generate a caption.");
+      error("Platform required", "Please select a platform to generate a caption.");
       return;
     }
     
@@ -218,19 +217,19 @@ export default function CreatePost() {
       }, 800);
     } catch (error) {
       console.error("Error generating caption:", error);
-      toast.error("Error", "Failed to generate caption. Please try again.");
+      error("Error", "Failed to generate caption. Please try again.");
       setIsGeneratingCaption(false);
     }
   };
 
   const generateMoreHashtags = (topic: string = title) => {
     if (!platform) {
-      toast.error("Platform required", "Please select a platform to generate hashtags.");
+      error("Platform required", "Please select a platform to generate hashtags.");
       return;
     }
     
     if (!topic) {
-      toast.error("Topic required", "Please enter a post title or topic for hashtag generation.");
+      error("Topic required", "Please enter a post title or topic for hashtag generation.");
       return;
     }
     
@@ -242,13 +241,13 @@ export default function CreatePost() {
       ai("AI Hashtags Generated", "New hashtag suggestions are ready for your post.");
     } catch (error) {
       console.error("Error generating hashtags:", error);
-      toast.error("Error", "Failed to generate hashtags. Please try again.");
+      error("Error", "Failed to generate hashtags. Please try again.");
     }
   };
   
   const addHashtagToCaption = (hashtag: string) => {
     setCaption(prev => prev + " " + hashtag);
-    toast.info("Hashtag Added", `Added ${hashtag} to your caption.`);
+    info("Hashtag Added", `Added ${hashtag} to your caption.`);
   };
   
   const useRecycledPost = (post: Post) => {
@@ -267,7 +266,7 @@ export default function CreatePost() {
   
   const saveForRecycling = () => {
     if (!title || !platform) {
-      toast.error("Incomplete post", "Please add a title and select a platform before saving for recycling.");
+      error("Incomplete post", "Please add a title and select a platform before saving for recycling.");
       return;
     }
     
@@ -279,10 +278,10 @@ export default function CreatePost() {
         imageUrl: uploadedImage
       });
       
-      toast.success("Saved for recycling", "This content has been saved and can be reused later.");
+      success("Saved for recycling", "This content has been saved and can be reused later.");
     } catch (error) {
       console.error("Error saving for recycling:", error);
-      toast.error("Error", "Failed to save content for recycling.");
+      error("Error", "Failed to save content for recycling.");
     }
   };
 
